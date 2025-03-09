@@ -1,6 +1,7 @@
 document.addEventListener('DOMContentLoaded', async () => {
   const newTweetInput = document.getElementById('new-tweet');
   const postTweetButton = document.getElementById('post-tweet');
+  const postTweetError = document.getElementById('post-error');
   const logoutButton = document.getElementById('logout');
 
   const user = JSON.parse(localStorage.getItem('user'));
@@ -34,27 +35,29 @@ document.addEventListener('DOMContentLoaded', async () => {
   };
 
   const getFeed = async () => {
-    const query = "SELECT * FROM tweets ORDER BY id DESC";
-    const response = await fetch(`/api/feed?q=${query}`);
+    const response = await fetch(`/api/feed`);
     const tweets = await response.json();
-    const tweetsHTML = tweets.map(generateTweet).join("");
-    document.getElementById("feed").innerHTML = tweetsHTML;
+    document.getElementById('feed').innerHTML = tweets.map(generateTweet).join('');
   };
 
   const postTweet = async () => {
-    const username = user.username;
-    const timestamp = new Date().toISOString();
-    const text = newTweetInput.value;
-    const query = `INSERT INTO tweets (username, timestamp, text) VALUES ('${username}', '${timestamp}', '${text}')`;
-    await fetch("/api/feed", {
-      method: "POST",
+    postTweetError.innerText = '';
+    const response = await fetch('/api/feed', {
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ query }),
+      body: JSON.stringify({
+        username: user.username,
+        text: newTweetInput.value
+      })
     });
+    if (response.status === 400) {
+      postTweetError.innerText = 'Please enter a valid thought';
+      return;
+    }
     await getFeed();
-    newTweetInput.value = "";
+    newTweetInput.value = '';
   };
 
   postTweetButton.addEventListener('click', postTweet);
