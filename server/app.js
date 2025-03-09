@@ -1,6 +1,7 @@
 const express = require('express');
 const rateLimit = require('express-rate-limit');
 const {initializeAPI} = require('./api');
+const morgan = require('morgan')
 const jwt = require('jsonwebtoken');
 
 // Create the express server
@@ -26,6 +27,17 @@ const buildApp = async () => {
     }
     next();
   });
+  // Log requests
+  app.use(morgan(function (tokens, req, res) {
+    return [
+      tokens.method(req, res),
+      tokens.url(req, res),
+      `by ${req.user?.username || 'anonymous'}`,
+      tokens.status(req, res),
+      tokens.res(req, res, 'content-length'), '-',
+      tokens['response-time'](req, res), 'ms'
+    ].join(' ')
+  }));
   // Deliver static files from the client folder like css, js, images - this is exempt from rate limiting on purpose
   app.use(express.static('client'));
   // Implement rate limiter for api requests - max 10 requests per 10 seconds
