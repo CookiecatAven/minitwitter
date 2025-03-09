@@ -2,6 +2,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const newTweetInput = document.getElementById('new-tweet');
   const postTweetButton = document.getElementById('post-tweet');
   const postTweetError = document.getElementById('post-error');
+  const feedError = document.getElementById('feed-error');
   const logoutButton = document.getElementById('logout');
 
   const user = JSON.parse(localStorage.getItem('user'));
@@ -15,7 +16,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       minute: 'numeric',
       second: 'numeric'
     });
-    const tweetElement = `
+    return `
         <div id="feed" class="flex flex-col gap-2 w-full">
             <div class="bg-slate-600 rounded p-4 flex gap-4 items-center border-l-4 border-blue-400" >
                 <img src="./img/tweet.png" alt="SwitzerChees" class="w-14 h-14 rounded-full" />
@@ -31,13 +32,27 @@ document.addEventListener('DOMContentLoaded', async () => {
             </div>
         </div>
       `;
-    return tweetElement;
   };
 
   const getFeed = async () => {
+    feedError.innerText = '';
     const response = await fetch(`/api/feed`);
-    const tweets = await response.json();
-    document.getElementById('feed').innerHTML = tweets.map(generateTweet).join('');
+    if (!response.ok) {
+      switch (response.status) {
+        case 429:
+          feedError.innerText = 'You\'re reloading too often, slow down!';
+          return;
+        default:
+          feedError.innerText = 'Something went wrong';
+      }
+    } else {
+      try {
+        const tweets = await response.json();
+        document.getElementById('feed').innerHTML = tweets.map(generateTweet).join('');
+      } catch {
+        feedError.innerText = 'Could not parse tweets';
+      }
+    }
   };
 
   const postTweet = async () => {
@@ -52,9 +67,17 @@ document.addEventListener('DOMContentLoaded', async () => {
         text: newTweetInput.value
       })
     });
-    if (response.status === 400) {
-      postTweetError.innerText = 'Please enter a valid thought';
-      return;
+    if (!response.ok) {
+      switch (response.status) {
+        case 400:
+          postTweetError.innerText = 'Please enter a valid thought';
+          return;
+        case 429:
+          postTweetError.innerText = 'You\'re thinking too much, slow down!';
+          return;
+        default:
+          postTweetError.innerText = 'Something went wrong';
+      }
     }
     await getFeed();
     newTweetInput.value = '';
@@ -72,5 +95,5 @@ document.addEventListener('DOMContentLoaded', async () => {
     window.location.href = '/login.html';
   });
 
-  getFeed();
+  await getFeed();
 });
