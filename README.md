@@ -1,4 +1,4 @@
-# A simple NodeJS Webapplication that allows yout to Post Tweets
+# A simple NodeJS Web-Application that allows you to Post Tweets
 
 ### Getting Started
 
@@ -19,10 +19,10 @@
    http://localhost:3000
    ```
 
-### Test Users
+### Test Users
 
 | Username     | Password |
-| ------------ | -------- |
+|--------------|----------|
 | switzerchees | 123456   |
 | john         | 123456   |
 | jane         | 123456   |
