@@ -4,6 +4,8 @@ const {initializeAPI} = require('./api');
 
 // Create the express server
 const app = express();
+// Remove hint in responses about Express being used as a framework
+app.disable('x-powered-by');
 app.use(express.json());
 const server = http.createServer(app);
 
