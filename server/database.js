@@ -1,7 +1,7 @@
+const bcrypt = require('bcrypt');
 const sqlite3 = require('sqlite3').verbose();
 
-const tweetsTableExists =
-  'SELECT name FROM sqlite_master WHERE type=\'table\' AND name=\'tweets\'';
+const tweetsTableExists = 'SELECT name FROM sqlite_master WHERE type=\'table\' AND name=\'tweets\'';
 const createTweetsTable = `CREATE TABLE tweets
                            (
                                id        INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -9,19 +9,17 @@ const createTweetsTable = `CREATE TABLE tweets
                                timestamp TEXT,
                                text      TEXT
                            )`;
-const usersTableExists =
-  'SELECT name FROM sqlite_master WHERE type=\'table\' AND name=\'users\'';
+const usersTableExists = 'SELECT name FROM sqlite_master WHERE type=\'table\' AND name=\'users\'';
 const createUsersTable = `CREATE TABLE users
                           (
                               id       INTEGER PRIMARY KEY AUTOINCREMENT,
                               username TEXT,
                               password TEXT
                           )`;
-const seedUsersTable = `INSERT INTO users (username, password) VALUES
-  ('switzerchees', '123456'),
-  ('john', '123456'),
-  ('jane', '123456')
-`;
+const seedUsersTable = `INSERT INTO users (username, password)
+                        VALUES ('switzerchees', '${bcrypt.hashSync('123456', 10)}'),
+                               ('john', '${bcrypt.hashSync('123456', 10)}'),
+                               ('jane', '${bcrypt.hashSync('123456', 10)}')`;
 
 const initializeDatabase = async () => {
   const db = new sqlite3.Database('./minitwitter.db');

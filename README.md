@@ -10,11 +10,12 @@
    ```sh
    npm install
    ```
-3. Run the app
+3. Copy the `.env.template` file as `.env` and define the values inside it
+4. Run the app
    ```sh
    npm run start
    ```
-4. Open the app in your browser
+5. Open the app in your browser
    ```sh
    http://localhost:3000
    ```

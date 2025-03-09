@@ -1,5 +1,11 @@
+require('dotenv').config();
+const bcrypt = require('bcrypt');
+const AesEncryption = require('aes-encryption');
 const {checkSchema, validationResult} = require('express-validator');
 const {initializeDatabase, queryDB, insertDB} = require('./database');
+
+const aes = new AesEncryption();
+aes.setSecretKey(process.env.AES_ENCRYPTION_SECRET_KEY);
 
 const tweetSchema = {
   username: {
@@ -37,7 +43,11 @@ const initializeAPI = async (app) => {
 const getFeed = async (req, res) => {
   const query = 'SELECT * FROM tweets ORDER BY id DESC';
   const tweets = await queryDB(db, query);
-  res.json(tweets);
+  const decryptedTweets = tweets.map(tweet => ({
+    ...tweet, // copy all properties from tweet
+    text: aes.decrypt(tweet.text) // overwrite text property with decoded text
+  }))
+  res.json(decryptedTweets);
 };
 
 const postTweet = async (req, res) => {
@@ -50,7 +60,7 @@ const postTweet = async (req, res) => {
   // generate timestamp on server and load data from request
   const timestamp = new Date().toISOString();
   const username = req.body.username;
-  const text = req.body.text;
+  const text = aes.encrypt(req.body.text);
 
   const query = `INSERT INTO tweets (username, timestamp, text)
                  VALUES ('${username}', '${timestamp}', '${text}')`;
@@ -68,14 +78,18 @@ const login = async (req, res) => {
   const {username, password} = req.body;
   const query = `SELECT *
                  FROM users
-                 WHERE username = '${username}'
-                   AND password = '${password}'`;
+                 WHERE username = '${username}'`;
   const user = await queryDB(db, query);
   if (user.length === 1) {
-    res.json(user[0]);
+    const isPasswordValid = await bcrypt.compare(password, user[0].password);
+    if (isPasswordValid) {
+      return res.json(user[0]);
+    } else {
+      return res.json(null);
+    }
   } else {
-    res.json(null);
+    return res.json(null);
   }
 };
 
-module.exports = { initializeAPI };
+module.exports = {initializeAPI};
