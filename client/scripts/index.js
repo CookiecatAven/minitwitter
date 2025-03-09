@@ -1,18 +1,18 @@
-document.addEventListener("DOMContentLoaded", () => {
-  const newTweetInput = document.getElementById("new-tweet");
-  const postTweetButton = document.getElementById("post-tweet");
-  const logoutButton = document.getElementById("logout");
+document.addEventListener('DOMContentLoaded', async () => {
+  const newTweetInput = document.getElementById('new-tweet');
+  const postTweetButton = document.getElementById('post-tweet');
+  const logoutButton = document.getElementById('logout');
 
-  const user = JSON.parse(localStorage.getItem("user"));
+  const user = JSON.parse(localStorage.getItem('user'));
   if (!user) {
-    window.location.href = "/login.html";
+    window.location.href = '/login.html';
   }
 
   const generateTweet = (tweet) => {
-    const date = new Date(tweet.timestamp).toLocaleDateString("de-CH", {
-      hour: "numeric",
-      minute: "numeric",
-      second: "numeric",
+    const date = new Date(tweet.timestamp).toLocaleDateString('de-CH', {
+      hour: 'numeric',
+      minute: 'numeric',
+      second: 'numeric'
     });
     const tweetElement = `
         <div id="feed" class="flex flex-col gap-2 w-full">
@@ -57,16 +57,16 @@ document.addEventListener("DOMContentLoaded", () => {
     newTweetInput.value = "";
   };
 
-  postTweetButton.addEventListener("click", postTweet);
-  newTweetInput.addEventListener("keyup", (event) => {
-    if (event.key === "Enter") {
+  postTweetButton.addEventListener('click', postTweet);
+  newTweetInput.addEventListener('keyup', (event) => {
+    if (event.key === 'Enter') {
       postTweet();
     }
   });
 
-  logoutButton.addEventListener("click", () => {
-    localStorage.removeItem("user");
-    window.location.href = "/login.html";
+  logoutButton.addEventListener('click', () => {
+    localStorage.removeItem('user');
+    window.location.href = '/login.html';
   });
 
   getFeed();
