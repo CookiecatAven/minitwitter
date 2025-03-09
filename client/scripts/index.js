@@ -5,8 +5,12 @@ document.addEventListener('DOMContentLoaded', async () => {
   const feedError = document.getElementById('feed-error');
   const logoutButton = document.getElementById('logout');
 
-  const user = JSON.parse(localStorage.getItem('user'));
-  if (!user) {
+  if (!localStorage.getItem('auth-token')) {
+    window.location.href = '/login.html';
+  }
+
+  const logout = () => {
+    localStorage.removeItem('auth-token');
     window.location.href = '/login.html';
   }
 
@@ -36,9 +40,16 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   const getFeed = async () => {
     feedError.innerText = '';
-    const response = await fetch(`/api/feed`);
+    const response = await fetch(`/api/feed`, {
+      headers: {
+        authorization: `Bearer ${localStorage.getItem('auth-token')}`
+      }
+    });
     if (!response.ok) {
       switch (response.status) {
+        case 401:
+          logout(); // if we get an unauthorized status code, we force a logout
+          return
         case 429:
           feedError.innerText = 'You\'re reloading too often, slow down!';
           return;
@@ -60,10 +71,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     const response = await fetch('/api/feed', {
       method: 'POST',
       headers: {
+        authorization: `Bearer ${localStorage.getItem('auth-token')}`,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        username: user.username,
         text: newTweetInput.value
       })
     });
@@ -72,6 +83,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         case 400:
           postTweetError.innerText = 'Please enter a valid thought';
           return;
+        case 401:
+          logout(); // if we get an unauthorized status code, we force a logout
+          return
         case 429:
           postTweetError.innerText = 'You\'re thinking too much, slow down!';
           return;
@@ -90,10 +104,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 
-  logoutButton.addEventListener('click', () => {
-    localStorage.removeItem('user');
-    window.location.href = '/login.html';
-  });
+  logoutButton.addEventListener('click', logout);
 
   await getFeed();
 });

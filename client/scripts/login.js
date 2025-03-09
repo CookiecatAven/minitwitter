@@ -17,19 +17,21 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     if (!response.ok) {
       switch (response.status) {
+        case 400:
+          errorText.innerText = 'Missing username or password';
+          return
+        case 401:
+          errorText.innerText = 'Invalid username or password';
+          return;
         case 429:
           errorText.innerText = 'You\'re trying to login too often, slow down!';
           return;
         default:
           errorText.innerText = 'Something went wrong';
+          return;
       }
     }
-    const data = await response.json();
-    if (data?.username) {
-      localStorage.setItem('user', JSON.stringify(data));
-      window.location.href = '/';
-    } else {
-      errorText.innerText = data;
-    }
+    localStorage.setItem('auth-token', await response.text());
+    window.location.href = '/';
   });
 });
