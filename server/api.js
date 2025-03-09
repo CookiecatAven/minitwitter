@@ -33,11 +33,17 @@ const loginSchema = {
 
 let db;
 
+// Implementation of a wrapper to make error handling with async functions work
+// see https://stackoverflow.com/questions/29700005/express-4-middleware-error-handler-not-being-called
+const asyncHandlerWrapper = handler => (req, res, next) => {
+  Promise.resolve(handler(req, res, next)).catch(next);
+};
+
 const initializeAPI = async (app) => {
   db = await initializeDatabase();
-  app.get('/api/feed', getFeed);
-  app.post('/api/feed', checkSchema(tweetSchema), postTweet);
-  app.post('/api/login', checkSchema(loginSchema), login);
+  app.get('/api/feed', asyncHandlerWrapper(getFeed));
+  app.post('/api/feed', checkSchema(tweetSchema), asyncHandlerWrapper(postTweet));
+  app.post('/api/login', checkSchema(loginSchema), asyncHandlerWrapper(login));
 };
 
 const getFeed = async (req, res) => {
@@ -46,7 +52,7 @@ const getFeed = async (req, res) => {
   const decryptedTweets = tweets.map(tweet => ({
     ...tweet, // copy all properties from tweet
     text: aes.decrypt(tweet.text) // overwrite text property with decoded text
-  }))
+  }));
   res.json(decryptedTweets);
 };
 
@@ -54,7 +60,7 @@ const postTweet = async (req, res) => {
   // Check for validation errors
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    return res.status(400).send();
+    return res.status(400).end();
   }
 
   // generate timestamp on server and load data from request
